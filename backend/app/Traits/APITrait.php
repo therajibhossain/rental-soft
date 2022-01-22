@@ -3,7 +3,7 @@
 namespace App\Traits;
 
 trait APITrait {
-    public function handleResponse($result, string $message): string {
+    public function handleResponse($result, $message) {
         $response = [
             'success' => true,
             'data' => $result,
@@ -13,7 +13,7 @@ trait APITrait {
         return response()->json($response, 200);
     }
 
-    public function handleError($error, array $errorMessages = [], $code = 404): string {
+    public function handleError($error, $errorMessages = [], $code = 404) {
         $response = [
             'success' => false,
             'message' => $error,

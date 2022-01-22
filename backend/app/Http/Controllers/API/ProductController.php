@@ -8,6 +8,7 @@ use App\Traits\APITrait;
 use App\Models\Product;
 use App\Http\Resources\Product as ProductResource;
 use Validator;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -18,9 +19,13 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index() {
-        $products = Product::all();
-        return $this->handleResponse(ProductResource::collection($products), 'Products retrived successfully.');
+    public function index() { 
+        try {
+            $products = Product::all();
+            return $this->handleResponse(ProductResource::collection($products), 'Products retrived successfully.');
+        }catch(\Exception $e) {
+            Log::error($e->getMessage());
+        }
     }
 
     /**
@@ -30,18 +35,22 @@ class ProductController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request) {
-        $input = $request->all();
-        $validator = Validator::make($input, [
-            'code' => 'required',
-            'name' => 'required',
-        ]);
+        try{
+            $input = $request->all();
+            $validator = Validator::make($input, [
+                'code' => 'required',
+                'name' => 'required',
+            ]);
 
-        if($validator->fails()){
-            return $this->handleError($validator->errors());       
+            if($validator->fails()){
+                return $this->handleError($validator->errors());       
+            }
+
+            $product = Product::create($input);
+            return $this->handleResponse(new ProductResource($product), 'Product created!');
+        }catch(\Exception $e) {
+            Log::error($e->getMessage());
         }
-
-        $product = Product::create($input);
-        return $this->handleResponse(new ProductResource($product), 'Product created!');
     }
 
     /**
@@ -51,12 +60,16 @@ class ProductController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id) {
-        $product = Product::find($id);
-        if (is_null($product)) {
-            return $this->handleError('Product not found!');
-        }
+        try{
+            $product = Product::find($id);
+            if (is_null($product)) {
+                return $this->handleError('Product not found!');
+            }
 
-        return $this->handleResponse(new ProductResource($product), 'Product retrieved.');
+            return $this->handleResponse(new ProductResource($product), 'Product retrieved.');
+        }catch(\Exception $e) {
+            Log::error($e->getMessage());
+        }
     }
 
     /**
@@ -67,20 +80,24 @@ class ProductController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Product $product) {
-        $input = $request->all();
-        $validator = Validator::make($input, [
-            'code' => 'required',
-            'name' => 'required',
-        ]);
+        try{
+            $input = $request->all();
+            $validator = Validator::make($input, [
+                'code' => 'required',
+                'name' => 'required',
+            ]);
 
-        if($validator->fails()){
-            return $this->handleError($validator->errors());       
+            if($validator->fails()){
+                return $this->handleError($validator->errors());       
+            }
+
+            $product->fill($request->all());
+            $product->save();
+
+            return $this->handleResponse(new ProductResource($product), 'Product updated!');
+        }catch(\Exception $e) {
+            Log::error($e->getMessage());
         }
-
-        $product->fill($request->all());
-        $product->save();
-
-        return $this->handleResponse(new ProductResource($product), 'Product updated!');
     }
 
     /**
@@ -90,15 +107,11 @@ class ProductController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy(Product $product) {
-        $product->delete();
-        return $this->handleResponse([], 'Product deleted!');
+        try{
+            $product->delete();
+            return $this->handleResponse([], 'Product deleted!');
+        }catch(\Exception $e) {
+            Log::error($e->getMessage());
+        }
     }
 }
-
-
-
-
-
-
-
-
